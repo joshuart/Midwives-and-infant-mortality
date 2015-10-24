@@ -11,6 +11,7 @@
 #   2. apgar ~ covariates + midwife_dummy
 #   3. apgar ~ covariates + midwife_dummy (quantile)
 #   4. mort ~ covaritaes + midwife_dummy (preterm)
+#   5. injury ~ covariates + midwife_dummy
 #   
 # Data I need to perform the analysis:
 #   1. birth_outcome
