@@ -2,7 +2,7 @@
 # Program: stat01.R
 # Project: Midwives/Infant Mortality
 # Author: Josh Taylor
-# Last edited: 10/21/15
+# Last edited: 11/5/15
 ######################################################################
 
 ###### Details #######################################################
@@ -31,3 +31,25 @@
 #   15. c_section
 #   16. delivery method
 ######################################################################
+library(Matching)
+library(data.table)
+
+# allbirths = fread("C:\\Josh Taylor\\allbirths.csv", header = T)
+
+
+propen = glm(midwife ~ factor(biryr) + factor(stoccfipb) + dmage + 
+               mwhite + meduc + mage  + married + mpcb + 
+               nprevist + dbirwt + dtotord + livord + 
+               anemia + cardiac + lung + diabetes + herpes + 
+               hemo + hyper + eclamp + incervix + pre4000 + 
+               preterm + renal + rh + drink + cigar + breech + 
+               cephalo, family = binomial, data = allbirths)
+
+#propensity score matching
+match1 = Match(Y = allbirths$mort, Tr = allbirths$midwife, X = propen$fitted, ties = F)
+
+#exact matches on state and year
+
+match2 = Match(Y = allbirths$mort, Tr = allbirths$midwife, X =cbind(propen$fitted, 
+              allbirths$stoccfipb, allbirths$biryr), exact = c(F, T, T))
+
