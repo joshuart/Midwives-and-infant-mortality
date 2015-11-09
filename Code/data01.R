@@ -6,6 +6,7 @@
 ######################################################################
 library(data.table)
 library(plyr)
+library(foreign)
 
 for (i in 1995:2006){
   path = paste0("C:\\Josh Taylor\\linkco", i, "us_den.csv")
@@ -72,7 +73,26 @@ for (i in 1995:2006){
                                 "uca_circ" = "circul"))
     
   }
-
+  
+  ####Make the state variable human readable:
+  if (i < 2003){
+    states = c("Alabama", "Alaska","","Arizona", "Arkansas", 
+               "California","", "Colorado", "Connecticut", "Delaware", 
+               "District of Columbia", "Florida", "Georgia","", "Hawaii",
+               "Idaho", "Illinois", "Indiana", "Iowa", "Kansas", "Kentucky", 
+               "Louisiana", "Maine", "Maryland", "Massachusetts", "Michigan", 
+               "Minnesota", "Mississippi", "Missouri", "Montana", "Nebraska", 
+               "Nevada", "New Hampshire", "New Jersey", "New Mexico", "New York", 
+               "North Carolina", "North Dakota", "Ohio", "Oklahoma", "Oregon", 
+               "Pennsylvania","", "Rhode Island", "South Carolina", "South Dakota", 
+               "Tennessee", "Texas", "Utah", "Vermont", "virginia","", "Washington", 
+               "West Virginia", "Wisconsin", "Wyoming") 
+    #there need to blanks to match the numbering in the description file
+    DT$state = states[DT$stoccfipb]}
+  else{DT$state = state.name[match(DT$stoccfipb, state.abb)]}
+  DT$stateStr = DT$state
+  DT$state = as.factor(DT$state)
+  
   #Create new variables
   DT$mort = (DT$matchs == 1) + 0
   DT$mwhite = (DT$mrace == 1) + 0
@@ -125,7 +145,7 @@ for (i in 1995:2006){
   
   DT[dbirwt == 9999, dbirwt := median(DT$dbirwt)]
   DT = DT[!is.na(DT$stoccfipb)] #remove missing states
-  
+  DT$biryr_factor = as.factor(DT$biryr)
   
   if (i == 1995){
     allbirths = DT
@@ -136,7 +156,11 @@ for (i in 1995:2006){
   completed = append(completed, i)
 }
 
+#remove the missing level from the states var.
+
+
+
 # write.table(allbirths, "C:\\Josh Taylor\\allbirths.csv")
 # write.table(allbirths, "/Volumes/Seagate Data Drive/Research/Midwives:Doctors Outcomes/Infant Mortality/Data/allbirths.csv")
-
+write.dta(allbirths, "C:\\Josh Taylor\\allbirths.dta")
 

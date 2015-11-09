@@ -33,17 +33,21 @@
 ######################################################################
 library(Matching)
 library(data.table)
+library(biglm)
 
 # allbirths = fread("C:\\Josh Taylor\\allbirths.csv", header = T)
 
-
-propen = glm(midwife ~ factor(biryr) + factor(stoccfipb) + dmage + 
-               mwhite + meduc + mage  + married + mpcb + 
-               nprevist + dbirwt + dtotord + livord + 
+#glm function was unable to handle the data
+propen = bigglm(midwife ~ biryr_factor + state + male + 
+               mwhite + dmeduc + dmage  + married + mpcb + 
+               nprevist + dbirwt + dtotord + dlivord + 
                anemia + cardiac + lung + diabetes + herpes + 
                hemo + hyper + eclamp + incervix + pre4000 + 
                preterm + renal + rh + drink + cigar + breech + 
-               cephalo, family = binomial, data = allbirths)
+               cephalo, family = binomial(link = "logit"), data = allbirths)
+
+
+
 
 #propensity score matching
 match1 = Match(Y = allbirths$mort, Tr = allbirths$midwife, X = propen$fitted, ties = F)
