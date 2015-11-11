@@ -8,7 +8,9 @@ library(data.table)
 library(plyr)
 library(foreign)
 
-for (i in 1995:2006){
+for (i in 1995:2002){
+  #Something is up with the 2004-2006 data, the attend variable is all missing
+  # 2003's age variables are all missing
   path = paste0("C:\\Josh Taylor\\linkco", i, "us_den.csv")
 #   path = paste0("/Volumes/Seagate Data Drive/Research/Midwives:Doctors Outcomes/Infant Mortality/Data/linkco", 
 #                 i, "us_den.csv")
@@ -87,9 +89,9 @@ for (i in 1995:2006){
                "Pennsylvania","", "Rhode Island", "South Carolina", "South Dakota", 
                "Tennessee", "Texas", "Utah", "Vermont", "virginia","", "Washington", 
                "West Virginia", "Wisconsin", "Wyoming") 
-    #there need to blanks to match the numbering in the description file
+               #there need to blanks to match the numbering in the description file
     DT$state = states[DT$stoccfipb]}
-  else{DT$state = state.name[match(DT$stoccfipb, state.abb)]}
+  else {DT$state = state.name[match(DT$stoccfipb, state.abb)]}
   DT$stateStr = DT$state
   DT$state = as.factor(DT$state)
   
@@ -109,7 +111,7 @@ for (i in 1995:2006){
     DT$breech + DT$cephalo + DT$cord + DT$distress + DT$otherlb
   # remove c-sections because midwives can't perform them. Vbacs are off-limits for midwives in some
   # states
-  DT[primac != 1 & repeac != 1 & vbac != 1]
+  DT = DT[primac != 1 & repeac != 1 & vbac != 1]
   
   
   ##revalue the missing data##
@@ -118,7 +120,7 @@ for (i in 1995:2006){
                 "nprevist", "clingest", "fmaps", "cigar", 
                 "drink", "wtgain")
   for (col in missing99){
-    DT[is.na(get(col)), (col) := median(DT[[col]])]
+    DT[is.na(get(col)), (col) := median(DT[[col]], na.rm = T)]
     DT[DT[[col]] == 99, (col) := median(DT[[col]])]
   }
   
@@ -136,7 +138,7 @@ for (i in 1995:2006){
                'breech', 'cephalo', 'cord', 'anesthe', 'distress',
                'otherlb', 'injury', 'heart' )
   for (col in missing9){
-    DT[is.na(get(col)), (col) := median(DT[[col]])]
+    DT[is.na(get(col)), (col) := median(DT[[col]], na.rm = T)]
     DT[DT[[col]] == 9, (col) := 0]
     DT[DT[[col]] == 8, (col) := 0]
     DT[DT[[col]] == 2, (col) := 0]
@@ -156,11 +158,9 @@ for (i in 1995:2006){
   completed = append(completed, i)
 }
 
-#remove the missing level from the states var.
+rm(DT)
 
-
-
-# write.table(allbirths, "C:\\Josh Taylor\\allbirths.csv")
+write.csv(allbirths, "C:\\Josh Taylor\\allbirths.csv")
 # write.table(allbirths, "/Volumes/Seagate Data Drive/Research/Midwives:Doctors Outcomes/Infant Mortality/Data/allbirths.csv")
-write.dta(allbirths, "C:\\Josh Taylor\\allbirths.dta")
+# write.dta(allbirths, "C:\\Josh Taylor\\allbirths.dta")
 

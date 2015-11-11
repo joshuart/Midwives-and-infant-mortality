@@ -31,29 +31,131 @@
 #   15. c_section
 #   16. delivery method
 ######################################################################
-library(Matching)
+library(MatchIt)
 library(data.table)
-library(biglm)
+library(doBy)
+library(stargazer)
+##### Look only at mothers having their first child ##############################################
+firstbirths = subset(allbirths, dtotord == 1)
 
-# allbirths = fread("C:\\Josh Taylor\\allbirths.csv", header = T)
+highRiskFirst = firstbirths[dmage >= 40 | clingest < 37 | anemia == 1 |
+                              cardiac == 1 | lung == 1 | dplural > 1 |
+                              diabetes == 1 | herpes == 1 | abruptio == 1 |
+                              hyper == 1 | eclamp == 1 | excebld == 1 |
+                              incervix == 1 | renal == 1 | seizure == 1 |
+                              rh == 1 | breech == 1 | precip == 1 | 
+                              prolong == 1 | dysfunc == 1 | cephalo == 1 | 
+                              cord == 1 | distress == 1 | otherlb == 1 | 
+                              othermr == 1 | uterine == 1]
 
-#glm function was unable to handle the data
-propen = bigglm(midwife ~ biryr_factor + state + male + 
-               mwhite + dmeduc + dmage  + married + mpcb + 
-               nprevist + dbirwt + dtotord + dlivord + 
-               anemia + cardiac + lung + diabetes + herpes + 
-               hemo + hyper + eclamp + incervix + pre4000 + 
-               preterm + renal + rh + drink + cigar + breech + 
-               cephalo, family = binomial(link = "logit"), data = allbirths)
+# gestation: https://www.betterhealth.vic.gov.au/health/healthyliving/baby-due-date
+
+lowRiskFirst = firstbirths[dmage < 40 & clingest >= 37 & anemia != 1 &
+                             cardiac != 1 & lung != 1 & dplural == 1 &
+                             diabetes != 1 & herpes != 1 & abruptio != 1 &
+                             hyper != 1 & eclamp != 1 & excebld != 1 &
+                             incervix != 1 & renal != 1 & seizure != 1 &
+                             rh != 1 & breech != 1 & precip != 1 &
+                             prolong != 1 & dysfunc != 1 & cephalo != 1 & 
+                             cord != 1 & distress != 1 & otherlb != 1 &
+                             othermr != 1 & uterine != 1]
+
+#propensity for low-risk mothers
+propenLR = glm(midwife ~ biryr_factor + state + male + mwhite + dmeduc + 
+                 dmage + married + mpcb + nprevist +  drink + cigar, 
+               family = binomial(link = "logit"), data = lowRiskFirst)
+
+#propensity for high-risk mothers
+propenHR = glm(midwife ~ biryr_factor + state + male + mwhite + dmeduc + 
+                 dmage  + married + mpcb + nprevist +  drink + cigar + anemia +
+                 cardiac + lung + diabetes + herpes + hyper + eclamp + incervix +
+                 renal + rh + breech + clingest + dplural + abruptio +
+                 excebld + seizure + precip + prolong + dysfunc + cephalo + 
+                 cord + distress + uterine + otherlb + othermr, 
+               family = binomial(link = "logit"), data = highRiskFirst)
+
+stargazer(propenLR, propenHR, type = "html", column.labels = c("Low Risk", "High Risk"),
+          out = "C:\\Users\\jt190\\Box Sync\\Home Folder jt190\\Research\\Midwives\\Charts\\propensity.htm")
+
+matchLR.out = matchit(midwife ~ biryr_factor + state + male + mwhite + dmeduc + 
+                    dmage + married + mpcb + nprevist + drink + cigar + forcep + 
+                    vacuum, 
+                  data = lowRiskFirst, method = "nearest", ratio = 1)
+
+summary(matchLR.out)
+plot(matchLR.out, type = "jitter")
+plot(matchLR.out, type = "hist")
+pdf("C:\\Users\\jt190\\Box Sync\\Home Folder jt190\\Research\\Midwives\\Charts\\lowRiskBalance.htm")
+plot(matchLR.out, type = "jitter")
+plot(matchLR.out, type = "hist")
+dev.off()
+matchLR = match.data(matchLR.out)
+
+matchHR.out =  matchit(midwife ~ biryr_factor + state + male + mwhite + dmeduc + 
+                         dmage  + married + mpcb + nprevist +  drink + cigar + forcep + 
+                         vacuum + anemia +
+                         cardiac + lung + diabetes + herpes + hyper + eclamp + incervix +
+                         renal + rh + breech + clingest + dplural + abruptio +
+                         excebld + seizure + precip + prolong + dysfunc + cephalo + 
+                         cord + distress + uterine + otherlb + othermr, 
+                       data = highRiskFirst, method = "nearest", ratio = 1)
+summary(matchHR.out)
+plot(matchHR.out, type = "jitter")
+plot(matchHR.out, type = "hist")
+pdf("C:\\Users\\jt190\\Box Sync\\Home Folder jt190\\Research\\Midwives\\Charts\\highRiskBalance.htm")
+plot(matchHR.out, type = "jitter")
+plot(matchHR.out, type = "hist")
+dev.off()
+matchHR = match.data(matchLR.out)
+
+####Run the regressions using the matched data ############################
+
+mortLR = glm(mort ~ midwife + biryr_factor + state + male + mwhite + dmeduc + 
+               dmage + married + mpcb + nprevist +  drink + cigar, 
+               family = binomial(link = "logit"), data = matchLR)
+
+#propensity for high-risk mothers
+mortHR = glm(mort ~ midwife + biryr_factor + state + male + mwhite + dmeduc + 
+               dmage  + married + mpcb + nprevist +  drink + cigar + anemia +
+               cardiac + lung + diabetes + herpes + hyper + eclamp + incervix +
+               renal + rh + breech + clingest + dplural + abruptio +
+               excebld + seizure + precip + prolong + dysfunc + cephalo + 
+               cord + distress + uterine + otherlb + othermr, 
+               family = binomial(link = "logit"), data = matchHR)
+
+
+stargazer(mortLR, mortHR, type = "html", column.labels = c("Low Risk", "High Risk"),
+          out = "C:\\Users\\jt190\\Box Sync\\Home Folder jt190\\Research\\Midwives\\Charts\\mortality.htm")
 
 
 
 
-#propensity score matching
-match1 = Match(Y = allbirths$mort, Tr = allbirths$midwife, X = propen$fitted, ties = F)
 
-#exact matches on state and year
 
-match2 = Match(Y = allbirths$mort, Tr = allbirths$midwife, X =cbind(propen$fitted, 
-              allbirths$stoccfipb, allbirths$biryr), exact = c(F, T, T))
+
+
+
+
+
+
+
+#### Look at most extreme states ###########################################
+stateRates = summaryBy(midwife + midwifeAll ~ state + stateStr, data = firstbirths, 
+                       keep.names = T)
+stateRates = stateRates[order(stateRates$midwife),]
+
+newMexicoLR = subset(lowRiskFirst, stateStr == "New Mexico") #largest share of midwife deliveries
+newMexicoHR = subset(highRiskFirst, stateStr == "New Mexico")
+missouriLR = subset(lowRiskFirst, stateStr == "Missouri") #smallest share of midwife deliveries
+missouriHR = subset(highRiskFirst, stateStr == "Missouri")
+
+alaskaLR = subset(lowRiskFirst, stateStr == "Alaska") #largest diff between midwife and midwifeAll
+alaskaHR = subset(highRiskFirst, stateStr == "Alaska")
+
+
+
+
+
+
+
 
