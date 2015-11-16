@@ -2,7 +2,7 @@
 # Program: stat01.R
 # Project: Midwives/Infant Mortality
 # Author: Josh Taylor
-# Last edited: 11/16/15
+# Last edited: 11/11/15
 ######################################################################
 
 ###### Details #######################################################
@@ -54,7 +54,8 @@ highRiskFirst = firstbirths[dmage >= 40 | clingest < 37 | anemia == 1 |
                               prolong == 1 | dysfunc == 1 | cephalo == 1 | 
                               cord == 1 | distress == 1 | otherlb == 1 | 
                               othermr == 1 | uterine == 1 | cigar > 0 |
-                              drink > 0]
+                              drink > 0 | febrile == 1 | rupture == 1 | 
+                              anesthe == 1 | tocol == 1]
 
 # gestation: https://www.betterhealth.vic.gov.au/health/healthyliving/baby-due-date
 
@@ -66,13 +67,14 @@ lowRiskFirst = firstbirths[dmage < 40 & clingest >= 37 & anemia != 1 &
                              rh != 1 & breech != 1 & precip != 1 &
                              prolong != 1 & dysfunc != 1 & cephalo != 1 & 
                              cord != 1 & distress != 1 & otherlb != 1 &
-                             othermr != 1 & uterine != 1 & cigar == 0 &
-                             drink == 0]
+                             othermr != 1 & uterine != 1 & febrile != 1 &
+                             rupture != 1 & anesthe != 1 & tocol != 1 &
+                             cigar == 0 & drink == 0]
 rm(firstbirths)
 
 # #propensity for low-risk mothers
 # propenLR = glm(midwife ~ biryr_factor + state + male + mwhite + dmeduc + 
-#                  dmage + married + mpcb + nprevist + clingest, 
+#                  dmage + married + mpcb + nprevist + clingest + meconium, 
 #                family = binomial(link = "logit"), data = lowRiskFirst)
 # lowRiskFirst$propen = propenLR$fitted
 # 
@@ -82,7 +84,8 @@ rm(firstbirths)
 #                  cardiac + lung + diabetes + herpes + hyper + eclamp + incervix +
 #                  renal + rh + breech + clingest + dplural + abruptio +
 #                  excebld + seizure + precip + prolong + dysfunc + cephalo + 
-#                  cord + distress + uterine + otherlb + othermr, 
+#                  cord + distress + uterine + otherlb + othermr + 
+#                  febrile + rupture + anesthe + tocol + meconium, 
 #                family = binomial(link = "logit"), data = highRiskFirst)
 # highRiskFirst$propen = propenHR$fitted
 # 
@@ -92,7 +95,8 @@ rm(firstbirths)
 #                    "rh", "breech", "dplural", "abruptio",
 #                    "excebld", "seizure", "precip", "prolong", "dysfunc",
 #                    "cephalo", "cord", "distress", "uterine", "otherlb",
-#                    "othermr"),
+#                    "othermr", "febrile", "rupture", "anesthe", "tocol",
+#                    "meconium"),
 #           out = "C:\\Users\\jt190\\Box Sync\\Home Folder jt190\\Research\\Midwives\\Charts\\propensity.htm")
 # 
 # stargazer(propenLR, propenHR, type = "html", column.labels = c("Low Risk", "High Risk"),
@@ -130,7 +134,7 @@ rm(firstbirths)
 # ####Run the regressions using the matched data ############################
 # 
 # mortLR = glm(mort ~ midwife + biryr_factor + state + male + mwhite + dmeduc + 
-#                dmage + married + mpcb + nprevist + forcep + vacuum, 
+#                dmage + married + mpcb + nprevist + forcep + vacuum + meconium, 
 #              family = binomial(link = "logit"), data = matchLR)
 # 
 # #propensity for high-risk mothers
@@ -139,12 +143,13 @@ rm(firstbirths)
 #                cardiac + lung + diabetes + herpes + hyper + eclamp + incervix +
 #                renal + rh + breech + clingest + dplural + abruptio +
 #                excebld + seizure + precip + prolong + dysfunc + cephalo + 
-#                cord + distress + uterine + otherlb + othermr + forcep + vacuum, 
+#                cord + distress + uterine + otherlb + othermr + forcep + 
+#                vacuum + febrile + rupture + anesthe + tocol + meconium, 
 #              family = binomial(link = "logit"), data = matchHR)
 # 
 # 
 # mortLRAll = glm(mort ~ midwife + biryr_factor + state + male + mwhite + dmeduc + 
-#                   dmage + married + mpcb + nprevist + forcep + vacuum, 
+#                   dmage + married + mpcb + nprevist + forcep + vacuum + meconium, 
 #                 family = binomial(link = "logit"), data = lowRiskFirst)
 # 
 # #propensity for high-risk mothers
@@ -153,7 +158,8 @@ rm(firstbirths)
 #                   cardiac + lung + diabetes + herpes + hyper + eclamp + incervix +
 #                   renal + rh + breech + clingest + dplural + abruptio +
 #                   excebld + seizure + precip + prolong + dysfunc + cephalo + 
-#                   cord + distress + uterine + otherlb + othermr + forcep + vacuum, 
+#                   cord + distress + uterine + otherlb + othermr + forcep +
+#                   vacuum + febrile + rupture + anesthe + tocol + meconium, 
 #                 family = binomial(link = "logit"), data = highRiskFirst)
 # 
 # stargazer(mortLRAll, mortLR, mortHRAll, mortHR, type = "html", column.labels = c("Low Risk", "High Risk"),
@@ -163,7 +169,8 @@ rm(firstbirths)
 #                    "rh", "breech", "dplural", "abruptio",
 #                    "excebld", "seizure", "precip", "prolong", "dysfunc",
 #                    "cephalo", "cord", "distress", "uterine", "otherlb",
-#                    "othermr"),
+#                    "othermr", "febrile", "rupture", "anesthe", "tocol",
+#                    "meconium"),
 #           out = "C:\\Users\\jt190\\Box Sync\\Home Folder jt190\\Research\\Midwives\\Charts\\mortality.htm")
 # 
 
