@@ -80,7 +80,7 @@ plot(matchHR.out, type = "jitter")
 plot(matchHR.out, type = "hist")
 dev.off()
 matchNMHR = match.data(matchHR.out)
-write.csv(matchHR, "C:\\Users\\jt190\\Box Sync\\Home Folder jt190\\Research\\Midwives\\Data\\matchNMHR.csv")
+write.csv(matchNMHR, "C:\\Users\\jt190\\Box Sync\\Home Folder jt190\\Research\\Midwives\\Data\\matchNMHR.csv")
 
 ####Run the mortality regressions using the matched data ############################
 
