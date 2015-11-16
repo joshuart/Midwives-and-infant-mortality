@@ -45,10 +45,10 @@ stargazer(propenLR, propenHR, type = "html", column.labels = c("Low Risk", "High
 
 matchLR.out = matchit(midwife ~ biryr_factor + male + mwhite + dmeduc + 
                         dmage + married + mpcb + nprevist + clingest + forcep + vacuum + 
-                        meconium + monitor + induct + stimula, 
+                        meconium + monitor, 
                       data = newMexicoLR, method = "nearest", ratio = 1)
 matchNMLR = match.data(matchLR.out)
-write.csv(matchLR, "C:\\Users\\jt190\\Box Sync\\Home Folder jt190\\Research\\Midwives\\Data\\matchNMLR.csv")
+write.csv(matchNMLR, "C:\\Users\\jt190\\Box Sync\\Home Folder jt190\\Research\\Midwives\\Data\\matchNMLR.csv")
 
 
 sink(file = "C:\\Users\\jt190\\Box Sync\\Home Folder jt190\\Research\\Midwives\\Charts\\NMLR Summary", type = "output")
@@ -86,7 +86,7 @@ write.csv(matchHR, "C:\\Users\\jt190\\Box Sync\\Home Folder jt190\\Research\\Mid
 
 mortLR = glm(mort ~ midwife + biryr_factor + male + mwhite + dmeduc + 
                dmage + married + mpcb + nprevist + forcep + vacuum + clingest + 
-               meconium + monitor + induct + stimula + wtgain, 
+               meconium + monitor + wtgain, 
              family = binomial(link = "logit"), data = matchNMLR)
 
 #mortality for high-risk mothers
@@ -103,7 +103,7 @@ mortHR = glm(mort ~ midwife + biryr_factor + male + mwhite + dmeduc +
 
 mortLRAll = glm(mort ~ midwife + biryr_factor + male + mwhite + dmeduc + 
                   dmage + married + mpcb + nprevist + forcep + vacuum + 
-                  clingest + meconium + monitor + induct + stimula + wtgain, 
+                  clingest + meconium + monitor + wtgain, 
                 family = binomial(link = "logit"), data = newMexicoLR)
 
 #mortality for high-risk mothers
@@ -114,7 +114,7 @@ mortHRAll = glm(mort ~ midwife + biryr_factor + male + mwhite + dmeduc +
                   excebld + seizure + precip + prolong + dysfunc + cephalo + 
                   cord + distress + uterine + otherlb + othermr + forcep + vacuum + 
                   febrile + rupture + anesthe + tocol + meconium + 
-                  monitor + induct + stimula + wtgain, 
+                  monitor + wtgain, 
                 family = binomial(link = "logit"), data = newMexicoHR)
 
 
@@ -140,7 +140,7 @@ stargazer(mortLRAll, mortLR, mortHRAll, mortHR, type = "html", column.labels = c
 
 fmapsLR = lm(fmaps ~ midwife + biryr_factor + male + mwhite + dmeduc + 
                dmage + married + mpcb + nprevist + forcep + vacuum + 
-               clingest + meconium + monitor + induct + stimula + wtgain, 
+               clingest + meconium + monitor + wtgain, 
                data = matchNMLR)
 
 #mortality for high-risk mothers
@@ -157,7 +157,7 @@ fmapsHR = lm(fmaps ~ midwife + biryr_factor + male + mwhite + dmeduc +
 
 fmapsLRAll = lm(fmaps ~ midwife + biryr_factor + male + mwhite + dmeduc + 
                   dmage + married + mpcb + nprevist + forcep + vacuum + 
-                  clingest + meconium + monitor + induct + stimula + wtgain, 
+                  clingest + meconium + monitor + wtgain, 
                   data = newMexicoLR)
 
 #mortality for high-risk mothers
