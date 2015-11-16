@@ -2,7 +2,7 @@
 # Program: stat01.R
 # Project: Midwives/Infant Mortality
 # Author: Josh Taylor
-# Last edited: 11/11/15
+# Last edited: 11/16/15
 ######################################################################
 
 ###### Details #######################################################
