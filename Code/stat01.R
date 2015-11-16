@@ -2,7 +2,7 @@
 # Program: stat01.R
 # Project: Midwives/Infant Mortality
 # Author: Josh Taylor
-# Last edited: 11/5/15
+# Last edited: 11/11/15
 ######################################################################
 
 ###### Details #######################################################
@@ -36,7 +36,14 @@ library(data.table)
 library(doBy)
 library(stargazer)
 ##### Look only at mothers having their first child ##############################################
+allbirths = fread("C:\\Josh Taylor\\allbirths.csv")
 firstbirths = subset(allbirths, dtotord == 1)
+# write.csv(firstbirths,"C:\\Josh Taylor\\firstbirths.csv" )
+rm(allbirths)
+
+stateRates = summaryBy(midwife + midwifeAll ~ state + stateStr, data = firstbirths, 
+                       keep.names = T)
+stateRates = stateRates[order(stateRates$midwife),]
 
 highRiskFirst = firstbirths[dmage >= 40 | clingest < 37 | anemia == 1 |
                               cardiac == 1 | lung == 1 | dplural > 1 |
@@ -46,7 +53,8 @@ highRiskFirst = firstbirths[dmage >= 40 | clingest < 37 | anemia == 1 |
                               rh == 1 | breech == 1 | precip == 1 | 
                               prolong == 1 | dysfunc == 1 | cephalo == 1 | 
                               cord == 1 | distress == 1 | otherlb == 1 | 
-                              othermr == 1 | uterine == 1]
+                              othermr == 1 | uterine == 1 | cigar > 0 |
+                              drink > 0]
 
 # gestation: https://www.betterhealth.vic.gov.au/health/healthyliving/baby-due-date
 
@@ -58,74 +66,107 @@ lowRiskFirst = firstbirths[dmage < 40 & clingest >= 37 & anemia != 1 &
                              rh != 1 & breech != 1 & precip != 1 &
                              prolong != 1 & dysfunc != 1 & cephalo != 1 & 
                              cord != 1 & distress != 1 & otherlb != 1 &
-                             othermr != 1 & uterine != 1]
+                             othermr != 1 & uterine != 1 & cigar == 0 &
+                             drink == 0]
+rm(firstbirths)
 
-#propensity for low-risk mothers
-propenLR = glm(midwife ~ biryr_factor + state + male + mwhite + dmeduc + 
-                 dmage + married + mpcb + nprevist +  drink + cigar, 
-               family = binomial(link = "logit"), data = lowRiskFirst)
+# #propensity for low-risk mothers
+# propenLR = glm(midwife ~ biryr_factor + state + male + mwhite + dmeduc + 
+#                  dmage + married + mpcb + nprevist + clingest, 
+#                family = binomial(link = "logit"), data = lowRiskFirst)
+# lowRiskFirst$propen = propenLR$fitted
+# 
+# #propensity for high-risk mothers
+# propenHR = glm(midwife ~ biryr_factor + state + male + mwhite + dmeduc + 
+#                  dmage  + married + mpcb + nprevist +  drink + cigar + anemia +
+#                  cardiac + lung + diabetes + herpes + hyper + eclamp + incervix +
+#                  renal + rh + breech + clingest + dplural + abruptio +
+#                  excebld + seizure + precip + prolong + dysfunc + cephalo + 
+#                  cord + distress + uterine + otherlb + othermr, 
+#                family = binomial(link = "logit"), data = highRiskFirst)
+# highRiskFirst$propen = propenHR$fitted
+# 
+# stargazer(propenLR, propenHR, type = "html", column.labels = c("Low Risk", "High Risk"),
+#           omit = c("state","drink", "cigar", "anemia", "cardiac", "lung", "diabetes",
+#                    "herpes", "hyper",  "eclamp", "incervix", "renal",
+#                    "rh", "breech", "dplural", "abruptio",
+#                    "excebld", "seizure", "precip", "prolong", "dysfunc",
+#                    "cephalo", "cord", "distress", "uterine", "otherlb",
+#                    "othermr"),
+#           out = "C:\\Users\\jt190\\Box Sync\\Home Folder jt190\\Research\\Midwives\\Charts\\propensity.htm")
+# 
+# stargazer(propenLR, propenHR, type = "html", column.labels = c("Low Risk", "High Risk"),
+#           omit = "state",
+#           out = "C:\\Users\\jt190\\Box Sync\\Home Folder jt190\\Research\\Midwives\\Charts\\Extended Propensity.htm")
+# 
+# 
+# matchLR.out = matchit(midwife ~ biryr_factor + state + propen + forcep + vacuum, 
+#                       data = lowRiskFirst, method = "nearest", ratio = 1)
+# matchLR = match.data(matchLR.out)
+# write.csv(matchLR, "C:\\Users\\jt190\\Box Sync\\Home Folder jt190\\Research\\Midwives\\Data\\matchLR.csv")
+# 
+# 
+# 
+# summary(matchLR.out)
+# plot(matchLR.out, type = "jitter")
+# plot(matchLR.out, type = "hist")
+# pdf("C:\\Users\\jt190\\Box Sync\\Home Folder jt190\\Research\\Midwives\\Charts\\lowRiskBalance.htm")
+# plot(matchLR.out, type = "jitter")
+# plot(matchLR.out, type = "hist")
+# dev.off()
+# 
+# matchHR.out =  matchit(midwife ~ biryr_factor + state + propen + forcep + vacuum, 
+#                        data = highRiskFirst, method = "nearest", ratio = 1)
+# summary(matchHR.out)
+# plot(matchHR.out, type = "jitter")
+# plot(matchHR.out, type = "hist")
+# pdf("C:\\Users\\jt190\\Box Sync\\Home Folder jt190\\Research\\Midwives\\Charts\\highRiskBalance.htm")
+# plot(matchHR.out, type = "jitter")
+# plot(matchHR.out, type = "hist")
+# dev.off()
+# matchHR = match.data(matchHR.out)
+# write.csv(matchHR, "C:\\Users\\jt190\\Box Sync\\Home Folder jt190\\Research\\Midwives\\Data\\matchHR.csv")
+# 
+# ####Run the regressions using the matched data ############################
+# 
+# mortLR = glm(mort ~ midwife + biryr_factor + state + male + mwhite + dmeduc + 
+#                dmage + married + mpcb + nprevist + forcep + vacuum, 
+#              family = binomial(link = "logit"), data = matchLR)
+# 
+# #propensity for high-risk mothers
+# mortHR = glm(mort ~ midwife + biryr_factor + state + male + mwhite + dmeduc + 
+#                dmage  + married + mpcb + nprevist +  drink + cigar + anemia +
+#                cardiac + lung + diabetes + herpes + hyper + eclamp + incervix +
+#                renal + rh + breech + clingest + dplural + abruptio +
+#                excebld + seizure + precip + prolong + dysfunc + cephalo + 
+#                cord + distress + uterine + otherlb + othermr + forcep + vacuum, 
+#              family = binomial(link = "logit"), data = matchHR)
+# 
+# 
+# mortLRAll = glm(mort ~ midwife + biryr_factor + state + male + mwhite + dmeduc + 
+#                   dmage + married + mpcb + nprevist + forcep + vacuum, 
+#                 family = binomial(link = "logit"), data = lowRiskFirst)
+# 
+# #propensity for high-risk mothers
+# mortHRAll = glm(mort ~ midwife + biryr_factor + state + male + mwhite + dmeduc + 
+#                   dmage  + married + mpcb + nprevist +  drink + cigar + anemia +
+#                   cardiac + lung + diabetes + herpes + hyper + eclamp + incervix +
+#                   renal + rh + breech + clingest + dplural + abruptio +
+#                   excebld + seizure + precip + prolong + dysfunc + cephalo + 
+#                   cord + distress + uterine + otherlb + othermr + forcep + vacuum, 
+#                 family = binomial(link = "logit"), data = highRiskFirst)
+# 
+# stargazer(mortLRAll, mortLR, mortHRAll, mortHR, type = "html", column.labels = c("Low Risk", "High Risk"),
+#           column.separate = c(2,2),
+#           omit = c("state", "anemia", "cardiac", "lung", "diabetes",
+#                    "herpes", "hyper",  "eclamp", "incervix", "renal",
+#                    "rh", "breech", "dplural", "abruptio",
+#                    "excebld", "seizure", "precip", "prolong", "dysfunc",
+#                    "cephalo", "cord", "distress", "uterine", "otherlb",
+#                    "othermr"),
+#           out = "C:\\Users\\jt190\\Box Sync\\Home Folder jt190\\Research\\Midwives\\Charts\\mortality.htm")
+# 
 
-#propensity for high-risk mothers
-propenHR = glm(midwife ~ biryr_factor + state + male + mwhite + dmeduc + 
-                 dmage  + married + mpcb + nprevist +  drink + cigar + anemia +
-                 cardiac + lung + diabetes + herpes + hyper + eclamp + incervix +
-                 renal + rh + breech + clingest + dplural + abruptio +
-                 excebld + seizure + precip + prolong + dysfunc + cephalo + 
-                 cord + distress + uterine + otherlb + othermr, 
-               family = binomial(link = "logit"), data = highRiskFirst)
-
-stargazer(propenLR, propenHR, type = "html", column.labels = c("Low Risk", "High Risk"),
-          out = "C:\\Users\\jt190\\Box Sync\\Home Folder jt190\\Research\\Midwives\\Charts\\propensity.htm")
-
-matchLR.out = matchit(midwife ~ biryr_factor + state + male + mwhite + dmeduc + 
-                    dmage + married + mpcb + nprevist + drink + cigar + forcep + 
-                    vacuum, 
-                  data = lowRiskFirst, method = "nearest", ratio = 1)
-
-summary(matchLR.out)
-plot(matchLR.out, type = "jitter")
-plot(matchLR.out, type = "hist")
-pdf("C:\\Users\\jt190\\Box Sync\\Home Folder jt190\\Research\\Midwives\\Charts\\lowRiskBalance.htm")
-plot(matchLR.out, type = "jitter")
-plot(matchLR.out, type = "hist")
-dev.off()
-matchLR = match.data(matchLR.out)
-
-matchHR.out =  matchit(midwife ~ biryr_factor + state + male + mwhite + dmeduc + 
-                         dmage  + married + mpcb + nprevist +  drink + cigar + forcep + 
-                         vacuum + anemia +
-                         cardiac + lung + diabetes + herpes + hyper + eclamp + incervix +
-                         renal + rh + breech + clingest + dplural + abruptio +
-                         excebld + seizure + precip + prolong + dysfunc + cephalo + 
-                         cord + distress + uterine + otherlb + othermr, 
-                       data = highRiskFirst, method = "nearest", ratio = 1)
-summary(matchHR.out)
-plot(matchHR.out, type = "jitter")
-plot(matchHR.out, type = "hist")
-pdf("C:\\Users\\jt190\\Box Sync\\Home Folder jt190\\Research\\Midwives\\Charts\\highRiskBalance.htm")
-plot(matchHR.out, type = "jitter")
-plot(matchHR.out, type = "hist")
-dev.off()
-matchHR = match.data(matchLR.out)
-
-####Run the regressions using the matched data ############################
-
-mortLR = glm(mort ~ midwife + biryr_factor + state + male + mwhite + dmeduc + 
-               dmage + married + mpcb + nprevist +  drink + cigar, 
-               family = binomial(link = "logit"), data = matchLR)
-
-#propensity for high-risk mothers
-mortHR = glm(mort ~ midwife + biryr_factor + state + male + mwhite + dmeduc + 
-               dmage  + married + mpcb + nprevist +  drink + cigar + anemia +
-               cardiac + lung + diabetes + herpes + hyper + eclamp + incervix +
-               renal + rh + breech + clingest + dplural + abruptio +
-               excebld + seizure + precip + prolong + dysfunc + cephalo + 
-               cord + distress + uterine + otherlb + othermr, 
-               family = binomial(link = "logit"), data = matchHR)
-
-
-stargazer(mortLR, mortHR, type = "html", column.labels = c("Low Risk", "High Risk"),
-          out = "C:\\Users\\jt190\\Box Sync\\Home Folder jt190\\Research\\Midwives\\Charts\\mortality.htm")
 
 
 
@@ -139,18 +180,15 @@ stargazer(mortLR, mortHR, type = "html", column.labels = c("Low Risk", "High Ris
 
 
 
-#### Look at most extreme states ###########################################
-stateRates = summaryBy(midwife + midwifeAll ~ state + stateStr, data = firstbirths, 
-                       keep.names = T)
-stateRates = stateRates[order(stateRates$midwife),]
 
-newMexicoLR = subset(lowRiskFirst, stateStr == "New Mexico") #largest share of midwife deliveries
-newMexicoHR = subset(highRiskFirst, stateStr == "New Mexico")
-missouriLR = subset(lowRiskFirst, stateStr == "Missouri") #smallest share of midwife deliveries
-missouriHR = subset(highRiskFirst, stateStr == "Missouri")
 
-alaskaLR = subset(lowRiskFirst, stateStr == "Alaska") #largest diff between midwife and midwifeAll
-alaskaHR = subset(highRiskFirst, stateStr == "Alaska")
+
+
+
+
+
+
+
 
 
 
