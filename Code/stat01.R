@@ -41,9 +41,9 @@ firstbirths = subset(allbirths, dtotord == 1)
 # write.csv(firstbirths,"C:\\Josh Taylor\\firstbirths.csv" )
 rm(allbirths)
 
-stateRates = summaryBy(midwife + midwifeAll ~ state + stateStr, data = firstbirths, 
-                       keep.names = T)
-stateRates = stateRates[order(stateRates$midwife),]
+# stateRates = summaryBy(midwife + midwifeAll ~ state + stateStr, data = firstbirths, 
+#                        keep.names = T)
+# stateRates = stateRates[order(stateRates$midwife),]
 
 highRiskFirst = firstbirths[dmage >= 40 | clingest < 37 | anemia == 1 |
                               cardiac == 1 | lung == 1 | dplural > 1 |

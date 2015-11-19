@@ -2,7 +2,7 @@
 # Program: stat02.R
 # Project: Midwives/Infant Mortality
 # Author: Josh Taylor
-# Last edited: 11/16/15
+# Last edited: 11/18/15
 ######################################################################
 
 #### Look at most extreme states ###########################################
@@ -10,6 +10,12 @@
 
 newMexicoLR = subset(lowRiskFirst, stateStr == "New Mexico") #largest share of midwife deliveries
 newMexicoHR = subset(highRiskFirst, stateStr == "New Mexico")
+
+#remove 'other' midwives and 'other' birth attendants
+newMexicoLR = subset(subset(newMexicoLR, birattnd != 5), birattnd != 4)
+newMexicoHR = subset(subset(newMexicoHR, birattnd != 5), birattnd != 4)
+
+
 
 #propensity for low-risk mothers
 propenLR = glm(midwife ~ biryr_factor  + male + mwhite + dmeduc + 
@@ -121,7 +127,7 @@ mortHRAll = glm(mort ~ midwife + biryr_factor + male + mwhite + dmeduc +
 #regression output
 stargazer(mortLRAll, mortLR, mortHRAll, mortHR, type = "html", column.labels = c("Low Risk", "High Risk"),
           column.separate = c(2,2),
-          omit = c("anemia", "cardiac", "lung", "diabetes",
+          omit = c("anemia", "cardiac", "lung", "diabetes", "biryr_factor",
                    "herpes", "hyper",  "eclamp", "incervix", "renal",
                    "rh", "breech", "dplural", "abruptio",
                    "excebld", "seizure", "precip", "prolong", "dysfunc",
@@ -175,7 +181,7 @@ fmapsHRAll = lm(fmaps ~ midwife + biryr_factor + male + mwhite + dmeduc +
 #regression output
 stargazer(fmapsLRAll, fmapsLR, fmapsHRAll, fmapsHR, type = "html", column.labels = c("Low Risk", "High Risk"),
           column.separate = c(2,2),
-          omit = c("anemia", "cardiac", "lung", "diabetes",
+          omit = c("anemia", "cardiac", "lung", "diabetes", "biryr_factor",
                    "herpes", "hyper",  "eclamp", "incervix", "renal",
                    "rh", "breech", "dplural", "abruptio",
                    "excebld", "seizure", "precip", "prolong", "dysfunc",

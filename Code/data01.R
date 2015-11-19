@@ -2,14 +2,13 @@
 # Program: data01.R
 # Project: Midwives/Infant Mortality
 # Author: Josh Taylor
-# Last edited: 11/5/15
+# Last edited: 11/18/15
 ######################################################################
 library(data.table)
 library(plyr)
 library(foreign)
 
 for (i in 1995:2002){
-  #Something is up with the 2004-2006 data, the attend variable is all missing
   # 2003's age variables are all missing
   path = paste0("C:\\Josh Taylor\\linkco", i, "us_den.csv")
 #   path = paste0("/Volumes/Seagate Data Drive/Research/Midwives:Doctors Outcomes/Infant Mortality/Data/linkco", 
@@ -17,8 +16,11 @@ for (i in 1995:2002){
   
   DT = fread(path, header = T) #, nrows = 1000)
   
-  if (i == 2003){DT = rename(DT, replace = c("umagerpt" = "dmage"))}
-  if (i >= 2004){DT = rename(DT, replace = c("mager41" = "dmage"))}
+  if (i >= 2003){
+    DT = rename(DT, replace = c("mager41" = "dmage"))
+    DT$dmage = DT$dmage + 13
+    DT$sex = (DT$sex == "M") + 0
+    }
   
   keepVars = c("matchs", "biryr", "stoccfipb", "dmage", "ormoth", 
                "mrace", "dmeduc", "dmar", "dtotord", "dlivord", "mpcb", "nprevist", 
@@ -123,6 +125,8 @@ for (i in 1995:2002){
     DT[is.na(get(col)), (col) := median(DT[[col]], na.rm = T)]
     DT[DT[[col]] == 99, (col) := median(DT[[col]])]
   }
+  
+  DT[mpcb == 0, mpcb := 9]
   
   #9 means missing, set missing to not observed
   DT[is.na(birattnd), birattnd := 5]
