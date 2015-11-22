@@ -8,7 +8,7 @@ library(data.table)
 library(plyr)
 library(foreign)
 
-for (i in 1995:2002){
+for (i in 1995:2004){
   # 2003's age variables are all missing
   path = paste0("C:\\Josh Taylor\\linkco", i, "us_den.csv")
 #   path = paste0("/Volumes/Seagate Data Drive/Research/Midwives:Doctors Outcomes/Infant Mortality/Data/linkco", 

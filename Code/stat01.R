@@ -35,15 +35,41 @@ library(MatchIt)
 library(data.table)
 library(doBy)
 library(stargazer)
+library(ggplot2)
+library(maps)
+library(plyr)
 ##### Look only at mothers having their first child ##############################################
 allbirths = fread("C:\\Josh Taylor\\allbirths.csv")
 firstbirths = subset(allbirths, dtotord == 1)
 # write.csv(firstbirths,"C:\\Josh Taylor\\firstbirths.csv" )
 rm(allbirths)
 
-# stateRates = summaryBy(midwife + midwifeAll ~ state + stateStr, data = firstbirths, 
-#                        keep.names = T)
-# stateRates = stateRates[order(stateRates$midwife),]
+states <- map_data("state")
+stateRates = summaryBy(midwife + midwifeAll + dplural ~ state + stateStr, data = firstbirths, 
+                       FUN = c(mean, "sum"))
+
+stateRates$midwife.sum = stateRates$midwifeAll.sum = stateRates$dplural.mean = NULL
+stateRates = rename(stateRates, replace = c("midwife.mean" = "midwife", 
+                                            "midwifeAll.mean" = "midwifeAll", 
+                                            "dplural.sum" = "births"))
+
+stateRates = stateRates[order(stateRates$midwife),]
+stateRates$births = stateRates$births/1000
+stateRates$region = tolower(stateRates$stateStr)
+stateMerge = merge(states, stateRates, sort = FALSE, by = "region")
+stateMerge <- stateMerge[order(stateMerge$order), ]
+
+qplot(long, lat, data = stateMerge, group = group, fill = midwife,
+      geom="polygon",
+      main = "Portion of Births Delivered by Midwives in the U.S.: 1995 - 2004")
+ggsave("C:\\Users\\jt190\\Box Sync\\Home Folder jt190\\Research\\Midwives\\Charts\\midwifery by state.pdf",width = 11, height = 8.5)
+
+qplot(long, lat, data = stateMerge, group = group, fill = births,
+      geom="polygon",
+      main = "Thousands of Births in the U.S.: 1995-2004", scipen = 10000)
+ggsave("C:\\Users\\jt190\\Box Sync\\Home Folder jt190\\Research\\Midwives\\Charts\\births by state.pdf",width = 11, height = 8.5)
+
+
 
 highRiskFirst = firstbirths[dmage >= 40 | clingest < 37 | anemia == 1 |
                               cardiac == 1 | lung == 1 | dplural > 1 |
