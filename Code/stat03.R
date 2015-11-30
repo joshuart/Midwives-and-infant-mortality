@@ -16,10 +16,35 @@ georgiaLR = subset(subset(georgiaLR, birattnd != 5), birattnd != 4)
 georgiaHR = subset(subset(georgiaHR, birattnd != 5), birattnd != 4)
 
 
+######## Summary statistics ###############################################
+
+#LR
+stargazer(georgiaLR, type = "html",
+          keep = c("biryr", "male", "mwhite", "dmeduc", "dmage", "married",
+                   "mpcb", "nprevist", "clingest", "forcep", "vacuum", "meconium",
+                   "monitor", "midwife"),
+          out = "C:\\Users\\jt190\\Box Sync\\Home Folder jt190\\Research\\Midwives\\Charts\\GALR Summary Table.htm")
+
+#HR
+stargazer(georgiaHR, type = "html",
+          keep = c( "biryr", "male", "mwhite", "dmeduc", "dmage", "married",
+                    "mpcb", "nprevist", "clingest", "forcep", "vacuum", "meconium",
+                    "monitor", "midwife", "drink", "cigar", "anemia", "cardiac",
+                     "lung", "diabetes", "herpes", "hyper", "eclamp", "incervix",
+                     "renal", "rh", "breech", "clingest", "dplural", "abruptio",
+                     "excebld", "seizure", "precip", "prolong", "dysfunc", "cephalo",
+                     "cord", "distress", "uterine", "otherlb", "othermr", 
+                     "febrile", "rupture", 'anesthe', "tocol", "meconium",
+                     "monitor", "induct", "stimula", "wtgain"),
+          out = "C:\\Users\\jt190\\Box Sync\\Home Folder jt190\\Research\\Midwives\\Charts\\GAHR Summary Table.htm")
+
+
+
+############################################################################
 
 #propensity for low-risk mothers
 propenLR = glm(midwife ~ biryr_factor  + male + mwhite + dmeduc + 
-                 dmage + married + mpcb + nprevist + clingest + meconium, 
+                 dmage + married + mpcb + nprevist + clingest, 
                family = binomial(link = "logit"), data = georgiaLR)
 georgiaLR$propen = propenLR$fitted
 
@@ -30,7 +55,7 @@ propenHR = glm(midwife ~ biryr_factor  + male + mwhite + dmeduc +
                  renal + rh + breech + clingest + dplural + abruptio +
                  excebld + seizure + precip + prolong + dysfunc + cephalo + 
                  cord + distress + uterine + otherlb + othermr + 
-                 febrile + rupture + anesthe + tocol + meconium + 
+                 febrile + rupture + anesthe + tocol + 
                  monitor + induct + stimula + wtgain, 
                family = binomial(link = "logit"), data = georgiaHR)
 georgiaHR$propen = georgiaHR$fitted

@@ -82,7 +82,7 @@ highRiskFirst = firstbirths[dmage >= 40 | clingest < 37 | anemia == 1 |
                               othermr == 1 | uterine == 1 | cigar > 0 |
                               drink > 0 | febrile == 1 | rupture == 1 | 
                               anesthe == 1 | tocol == 1 | stimula == 1 |
-                              induct == 1]
+                              induct == 1 | dmage < 20]
 
 # gestation: https://www.betterhealth.vic.gov.au/health/healthyliving/baby-due-date
 
@@ -96,7 +96,8 @@ lowRiskFirst = firstbirths[dmage < 40 & clingest >= 37 & anemia != 1 &
                              cord != 1 & distress != 1 & otherlb != 1 &
                              othermr != 1 & uterine != 1 & febrile != 1 &
                              rupture != 1 & anesthe != 1 & tocol != 1 &
-                             stimula != 1 & induct != 1 & cigar == 0 & drink == 0]
+                             stimula != 1 & induct != 1 & cigar == 0 & 
+                             drink == 0 & dmage >= 20]
 rm(firstbirths)
 
 # #propensity for low-risk mothers
