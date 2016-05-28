@@ -2,25 +2,35 @@
 # Program: data01.R
 # Project: Midwives/Infant Mortality
 # Author: Josh Taylor
-# Last edited: 11/18/15
+# Last edited: 5/28/16
+######################################################################
+# Notes: 
+# 1. I only use the 1995-2004 data because after that geographic 
+#    data is omitted from the datasets.
+#
 ######################################################################
 library(data.table)
 library(plyr)
 library(foreign)
 
+
+
+
 for (i in 1995:2004){
-  # 2003's age variables are all missing
-  path = paste0("C:\\Josh Taylor\\linkco", i, "us_den.csv")
-#   path = paste0("/Volumes/Seagate Data Drive/Research/Midwives:Doctors Outcomes/Infant Mortality/Data/linkco", 
-#                 i, "us_den.csv")
-  
-  DT = fread(path, header = T) #, nrows = 1000)
+  path = paste0("/Volumes/Seagate Data Drive/Research/Midwives:Doctors Outcomes/Infant Mortality/Data/linkco",
+                i, "us_den.csv")
+
+  DT = fread(path, header = T , nrows = 1000)
   
   if (i >= 2003){
     DT = rename(DT, replace = c("mager41" = "dmage"))
     DT$dmage = DT$dmage + 13
     DT$sex = (DT$sex == "M") + 0
     }
+  
+  ### Add the place of delivery: PLDEL <=2002 or BFACIL3 >2002
+  
+  
   
   keepVars = c("matchs", "biryr", "stoccfipb", "dmage", "ormoth", 
                "mrace", "dmeduc", "dmar", "dtotord", "dlivord", "mpcb", "nprevist", 
