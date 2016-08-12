@@ -21,47 +21,50 @@ for (i in 1995:2004){
                 i, "us_den.csv")
 
   DT = fread(path, header = T , nrows = 1000)
+
   
-  if (i >= 2003){
-    DT = rename(DT, replace = c("mager41" = "dmage"))
-    DT$dmage = DT$dmage + 13
-    DT$sex = (DT$sex == "M") + 0
+  if (i == 2003){
+    DT = rename(DT, replace = c("mager41" = "dmage", "bfacil3" = "pldel")) # perhaps just use mager
+    DT$dmage = DT$dmage + 13 
+    DT$sex = (DT$sex == "M") + 0 
     }
   
-  ### Add the place of delivery: PLDEL <=2002 or BFACIL3 >2002
+  if ( i == 2004){
+    DT = rename(DT, replace = c("mager41" = "dmage", "bfacil3" = "pldel"))
+    DT$sex = (DT$sex == "M") + 0 
+  }
   
-  
-  
-  keepVars = c("matchs", "biryr", "stoccfipb", "dmage", "ormoth", 
+  keepVars = c("matchs", "biryr", "stoccfipb", "dmage", "ormoth", "pldel",
                "mrace", "dmeduc", "dmar", "dtotord", "dlivord", "mpcb", "nprevist", 
-              "birattnd", "clingest", "csex", "dbirwt", 
+               "birattnd", "clingest", "csex", "dbirwt", 
                "dplural", "fmaps", "vaginal", "vbac", "primac", "repeac", "forcep",
                "vacuum", "anemia", "cardiac", "lung", "diabetes", 
                "herpes", "hemo", "chyper", "phyper", "eclamp", "incervix", 
                "pre4000", "preterm", "renal", "rh", "uterine", "othermr", 
                "tobacco", "cigar", "alcohol", "drink", "wtgain", "induct",
                "monitor", "stimula", "tocol", "ultras", "febrile", "meconium", "rupture", 
-               "abruptio", "excebld", "seizure", "precip", "prolong", "dysfunc", 
-               "breech", "cephalo", "cord", "anesthe", "distress", "otherlb", 
+               "preplace", "abruptio", "excebld", "seizure", "precip", "prolong", "dysfunc", 
+               "breech", "cephalo", "cord", "anesthe", "distress", "otherlb", "hydra",
                "nanemia", "injury", "heart", "circul")
   if (i >= 2003){
-    keepVars = c("matchs", "dob_yy", "ostate", "dmage", "umhisp", 
+    keepVars = c("matchs", "dob_yy", "ostate", "dmage", "umhisp", "pldel",
                  "mrace", "umeduc", "mar", "tbo", "lbo", "mpcb", "uprevis", 
                  "attend", "estgest", "sex", "dbwt", 
                  "dplural", "f_apgar5", "ume_vag", "ume_vbac", "ume_primc", "ume_repec", "ume_forcp",
                  "ume_vac", "urf_anemia", "urf_card", "urf_lung", "urf_diab", 
                  "urf_gen", "urf_hemo", "urf_chyper", "urf_phyper", "urf_eclam", "urf_incerv", 
                  "urf_pre4000", "urf_preterm", "urf_renal", "urf_rh", "urf_uterine", "urf_other", 
-                 "f_tobaco", "cigs", "alcohol", "drinks", "wtgain", "uop_induc",
+                 "tobuse", "cigs", "alcohol", "drinks", "wtgain", "uop_induc",
                  "uop_monit", "uop_stiml", "uop_tocol", "uop_ultra", "uld_febr", "uld_meco", "uld_ruptr", 
-                 "uld_abrup", "uld_excbl", "uld_seiz", "uld_precip", "uld_prolg", "uld_dysfn", 
-                 "uld_breech", "uld_cephal", "uld_cord", "uld_anest", "uld_distr", "uld_other", 
+                 "uld_prepla","uld_abrup", "uld_excbl", "uld_seiz", "uld_precip", "uld_prolg", "uld_dysfn", 
+                 "uld_breech", "uld_cephal", "uld_cord", "uld_anest", "uld_distr", "uld_other", "hydra",
                  "uab_anem", "uab_injury", "uca_heart", "uca_circ")
   }
+
   
   
   DT = DT[, keepVars, with = F]
-  
+  ### Make the variables consistent between the two time periods
   if(i >= 2003){
     DT = rename(DT, replace = c("dob_yy" = "biryr", "ostate" = "stoccfipb",
                                 "umhisp" = "ormoth", "umeduc" = "dmeduc", "mar" = "dmar",
