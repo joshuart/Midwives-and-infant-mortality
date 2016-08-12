@@ -45,7 +45,7 @@ for (i in 1995:2004){
                "monitor", "stimula", "tocol", "ultras", "febrile", "meconium", "rupture", 
                "preplace", "abruptio", "excebld", "seizure", "precip", "prolong", "dysfunc", 
                "breech", "cephalo", "cord", "anesthe", "distress", "otherlb", "hydra",
-               "nanemia", "injury", "heart", "circul")
+               "nanemia", "injury", "heart", "circul", "spina")
   if (i >= 2003){
     keepVars = c("matchs", "dob_yy", "ostate", "dmage", "umhisp", "pldel",
                  "mrace", "umeduc", "mar", "tbo", "lbo", "mpcb", "uprevis", 
@@ -58,7 +58,7 @@ for (i in 1995:2004){
                  "uop_monit", "uop_stiml", "uop_tocol", "uop_ultra", "uld_febr", "uld_meco", "uld_ruptr", 
                  "uld_prepla","uld_abrup", "uld_excbl", "uld_seiz", "uld_precip", "uld_prolg", "uld_dysfn", 
                  "uld_breech", "uld_cephal", "uld_cord", "uld_anest", "uld_distr", "uld_other", "hydra",
-                 "uab_anem", "uab_injury", "uca_heart", "uca_circ")
+                 "uab_anem", "uab_injury", "uca_heart", "uca_circ", "uca_spina")
   }
 
   
