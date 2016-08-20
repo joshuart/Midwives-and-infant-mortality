@@ -15,7 +15,6 @@ library(foreign)
 
 
 
-
 for (i in 1995:2004){
   path = paste0("/Volumes/Seagate Data Drive/Research/Midwives:Doctors Outcomes/Infant Mortality/Data/linkco",
                 i, "us_den.csv")
@@ -31,7 +30,7 @@ for (i in 1995:2004){
   
   if ( i == 2004){
     DT = rename(DT, replace = c("mager41" = "dmage", "bfacil3" = "pldel"))
-    DT$sex = (DT$sex == "M") + 0 
+    DT$sex = (DT$sex == "M") + 0 # this looks incorrect, but it gets recoded later
   }
   
   keepVars = c("matchs", "biryr", "stoccfipb", "dmage", "ormoth", "pldel",
@@ -45,7 +44,7 @@ for (i in 1995:2004){
                "monitor", "stimula", "tocol", "ultras", "febrile", "meconium", "rupture", 
                "preplace", "abruptio", "excebld", "seizure", "precip", "prolong", "dysfunc", 
                "breech", "cephalo", "cord", "anesthe", "distress", "otherlb", "hydra",
-               "nanemia", "injury", "heart", "circul", "spina")
+               "nanemia", "injury", "heart", "circul", "spina", "aged")
   if (i >= 2003){
     keepVars = c("matchs", "dob_yy", "ostate", "dmage", "umhisp", "pldel",
                  "mrace", "umeduc", "mar", "tbo", "lbo", "mpcb", "uprevis", 
@@ -57,10 +56,11 @@ for (i in 1995:2004){
                  "tobuse", "cigs", "alcohol", "drinks", "wtgain", "uop_induc",
                  "uop_monit", "uop_stiml", "uop_tocol", "uop_ultra", "uld_febr", "uld_meco", "uld_ruptr", 
                  "uld_prepla","uld_abrup", "uld_excbl", "uld_seiz", "uld_precip", "uld_prolg", "uld_dysfn", 
-                 "uld_breech", "uld_cephal", "uld_cord", "uld_anest", "uld_distr", "uld_other", "hydra",
-                 "uab_anem", "uab_injury", "uca_heart", "uca_circ", "uca_spina")
+                 "uld_breech", "uld_cephal", "uld_cord", "uld_anest", "uld_distr", "uld_other", "urf_hydr",
+                 "uab_anem", "uab_injury", "uca_heart", "uca_circ", "uca_spina", "aged")
   }
 
+ 
   
   
   DT = DT[, keepVars, with = F]
@@ -87,9 +87,12 @@ for (i in 1995:2004){
                                 "uld_breech" = "breech", "uld_cephal" = "cephalo", "uld_cord" = "cord",
                                 "uld_anest" = "anesthe", "uld_distr" = "distress", "uld_other" = "otherlb", 
                                 "uab_anem" = "nanemia", "uab_injury" = "injury", "uca_heart" = "heart", 
-                                "uca_circ" = "circul"))
+                                "uca_circ" = "circul", "urf_hydr" = "hydra", "uca_spina" = "spina", "uld_prepla" = "preplace"))
     
   }
+  
+  # Need to add hydra, spina, preplace, aged
+  
   
   ####Make the state variable human readable:
   if (i < 2003){
@@ -102,7 +105,7 @@ for (i in 1995:2004){
                "Nevada", "New Hampshire", "New Jersey", "New Mexico", "New York", 
                "North Carolina", "North Dakota", "Ohio", "Oklahoma", "Oregon", 
                "Pennsylvania","", "Rhode Island", "South Carolina", "South Dakota", 
-               "Tennessee", "Texas", "Utah", "Vermont", "virginia","", "Washington", 
+               "Tennessee", "Texas", "Utah", "Vermont", "Virginia","", "Washington", 
                "West Virginia", "Wisconsin", "Wyoming") 
                #there need to blanks to match the numbering in the description file
     DT$state = states[DT$stoccfipb]}
@@ -110,9 +113,37 @@ for (i in 1995:2004){
   DT$stateStr = DT$state
   DT$state = as.factor(DT$state)
   
+  ######## Here ################################################
+  # Change all of the binary variables from 1,2 to 0,1 
+  dummies = c("matchs", "pldel", "dmar",  "forcep",
+              "vacuum", "anemia", "cardiac", "lung", "diabetes", 
+              "herpes", "hemo", "chyper", "phyper", "eclamp", "incervix", 
+              "pre4000", "preterm", "renal", "rh", "uterine", "othermr", 
+              "tobacco", "cigar", "alcohol", "drink", "induct",
+              "monitor", "stimula", "tocol", "ultras", "febrile", "meconium", "rupture", 
+              "preplace", "abruptio", "excebld", "seizure", "precip", "prolong", "dysfunc", 
+              "breech", "cephalo", "cord", "anesthe", "distress", "otherlb", "hydra",
+              "nanemia", "injury", "heart", "circul", "spina")
+  ########################################################
+  
+  
   #Create new variables
-  DT$mort = (DT$matchs == 1) + 0
-  DT$mwhite = (DT$mrace == 1) + 0
+  DT[, mort := (matchs == 1) + 0]
+  DT[, mwhite := (mrace == 1) + 0]
+  DT[, mblack := (mrace == 2) + 0]
+  DT[, married := (dmar == 1) + 0]
+  DT[, male := (csex == 1) + 0]
+  DT[, hyper := (chyper == 1) + 0]
+  DT[, midwifedAll := (birattnd == 3 | birattnd == 4) + 0]
+  DT[, midwife := (birattnd == 3) + 0]
+  # These variables have not be revalued to 0,1 still 1,2
+  DT[, numCompPre := diabetes + herpes + hemo + hyper + eclamp + incervix + pre4000 + 
+       preterm + renal + rh + uterine + othermr ] # this is not all the complications
+  
+  
+  # Change these to data.table syntax to get faster performance
+  # DT$mort = (DT$matchs == 1) + 0
+  # DT$mwhite = (DT$mrace == 1) + 0
   DT$mblack  = (DT$mrace == 2) + 0
   DT$married = (DT$dmar == 1) + 0
   DT$male = (DT$csex == 1) + 0
