@@ -5,13 +5,14 @@
 # Last edited: 5/28/16
 ######################################################################
 # Notes: 
-# 1. I only use the 1995-2004 data because after that geographic 
+# 1. I only use the 1995-2004 data because after 2004 geographic 
 #    data is omitted from the datasets.
 #
 ######################################################################
 library(data.table)
 library(plyr)
 library(foreign)
+library(truncnorm)
 
 
 
@@ -59,9 +60,6 @@ for (i in 1995:2004){
                  "uld_breech", "uld_cephal", "uld_cord", "uld_anest", "uld_distr", "uld_other", "urf_hydr",
                  "uab_anem", "uab_injury", "uca_heart", "uca_circ", "uca_spina", "aged")
   }
-
- 
-  
   
   DT = DT[, keepVars, with = F]
   ### Make the variables consistent between the two time periods
@@ -95,6 +93,7 @@ for (i in 1995:2004){
   
   
   ####Make the state variable human readable:
+  #### There are some issues here #####
   if (i < 2003){
     states = c("Alabama", "Alaska","","Arizona", "Arkansas", 
                "California","", "Colorado", "Connecticut", "Delaware", 
@@ -108,23 +107,10 @@ for (i in 1995:2004){
                "Tennessee", "Texas", "Utah", "Vermont", "Virginia","", "Washington", 
                "West Virginia", "Wisconsin", "Wyoming") 
                #there need to blanks to match the numbering in the description file
-    DT$state = states[DT$stoccfipb]}
+    DT$state = states[DT$stoccfipb] }
   else {DT$state = state.name[match(DT$stoccfipb, state.abb)]}
-  DT$stateStr = DT$state
-  DT$state = as.factor(DT$state)
-  
-  ######## Here ################################################
-  # Change all of the binary variables from 1,2 to 0,1 
-  dummies = c("matchs", "pldel", "dmar",  "forcep",
-              "vacuum", "anemia", "cardiac", "lung", "diabetes", 
-              "herpes", "hemo", "chyper", "phyper", "eclamp", "incervix", 
-              "pre4000", "preterm", "renal", "rh", "uterine", "othermr", 
-              "tobacco", "cigar", "alcohol", "drink", "induct",
-              "monitor", "stimula", "tocol", "ultras", "febrile", "meconium", "rupture", 
-              "preplace", "abruptio", "excebld", "seizure", "precip", "prolong", "dysfunc", 
-              "breech", "cephalo", "cord", "anesthe", "distress", "otherlb", "hydra",
-              "nanemia", "injury", "heart", "circul", "spina")
-  ########################################################
+  DT[, stateStr := state]
+  DT[, state := as.factor(state)]
   
   
   #Create new variables
@@ -136,64 +122,61 @@ for (i in 1995:2004){
   DT[, hyper := (chyper == 1) + 0]
   DT[, midwifedAll := (birattnd == 3 | birattnd == 4) + 0]
   DT[, midwife := (birattnd == 3) + 0]
-  # These variables have not be revalued to 0,1 still 1,2
-  DT[, numCompPre := diabetes + herpes + hemo + hyper + eclamp + incervix + pre4000 + 
-       preterm + renal + rh + uterine + othermr ] # this is not all the complications
   
   
-  # Change these to data.table syntax to get faster performance
-  # DT$mort = (DT$matchs == 1) + 0
-  # DT$mwhite = (DT$mrace == 1) + 0
-  DT$mblack  = (DT$mrace == 2) + 0
-  DT$married = (DT$dmar == 1) + 0
-  DT$male = (DT$csex == 1) + 0
-  DT$hyper = (DT$chyper == 1 | DT$phyper == 1) + 0
-  DT$midwifeAll = (DT$birattnd == 3 | DT$birattnd == 4) + 0
-  DT$midwife = (DT$birattnd == 3) + 0
-  DT$numCompPre = DT$diabetes + DT$herpes + DT$hemo + DT$hyper + DT$eclamp + DT$incervix + DT$pre4000 + 
-    DT$preterm + DT$renal + DT$rh + DT$uterine + DT$othermr 
-  DT$numCompDur = DT$tocol + DT$febrile + DT$rupture + 
-    DT$rupture + DT$abruptio + DT$excebld + DT$seizure + DT$precip + DT$prolong + DT$dysfunc + 
-    DT$breech + DT$cephalo + DT$cord + DT$distress + DT$otherlb
-  # remove c-sections because midwives can't perform them. Vbacs are off-limits for midwives in some
-  # states
-  DT = DT[primac != 1 & repeac != 1 & vbac != 1]
-  
-  
-  ##revalue the missing data##
+  ####################### revalue the missing data ###################
   #99 means missing, set missing values to the median
   missing99 = c("dmeduc", "dmage", "dtotord", "dlivord", "mpcb", 
                 "nprevist", "clingest", "fmaps", "cigar", 
                 "drink", "wtgain")
   for (col in missing99){
-    DT[is.na(get(col)), (col) := median(DT[[col]], na.rm = T)]
-    DT[DT[[col]] == 99, (col) := median(DT[[col]])]
+    meanVal = DT[DT[[col]] != 99, mean(DT[[col]])]
+    stddev = DT[DT[[col]] != 1, sd(DT[[col]])]
+    DT[is.na(get(col)), (col) := rtruncnorm(sum(is.na(get(col))), a = 0, b = 10, mean = meanVal,  sd = stddev) ] 
+    DT[DT[[col]] > 10, (col) := rtruncnorm(sum(DT[[col]] > 10), a = 0, b = 10, mean = meanVal,  sd = stddev)] 
+
   }
-  
+  # Dummy for whether or not people have prenatal care
+  DT[, dprenat := (mpcb != 0) + 0]
+  # Put people with no prenatal care with those that started in the last month
   DT[mpcb == 0, mpcb := 9]
+
   
   #9 means missing, set missing to not observed
   DT[is.na(birattnd), birattnd := 5]
   DT[birattnd == 9, birattnd := 5] # set missing to other
-  missing9 = c( 'vaginal', 'meconium', 'vbac', 
-               'primac', 'repeac', 'forcep', 'vacuum', 
-               'anemia', 'cardiac', 'lung', 'diabetes', 
-               'herpes', 'hemo', 'eclamp', 'incervix', 'pre4000', 
-               'preterm', 'renal', 'rh', 'uterine', 'othermr', 
-               'alcohol', 'tobacco', 'induct', 'monitor', 'stimula',
-               'tocol', 'ultras', 'febrile', 'rupture', 'abruptio', 
-               'excebld', 'seizure', 'precip', 'prolong', 'dysfunc', 
-               'breech', 'cephalo', 'cord', 'anesthe', 'distress',
-               'otherlb', 'injury', 'heart' )
+  missing9 = c("matchs", "pldel", "dmar",  "forcep", "vaginal", "primac", "repeac", "vbac",
+               "vacuum", "anemia", "cardiac", "lung", "diabetes", 
+               "herpes", "hemo", "chyper", "phyper", "eclamp", "incervix", 
+               "pre4000", "preterm", "renal", "rh", "uterine", "othermr", 
+               "tobacco", "cigar", "alcohol", "drink", "induct",
+               "monitor", "stimula", "tocol", "ultras", "febrile", "meconium", "rupture", 
+               "preplace", "abruptio", "excebld", "seizure", "precip", "prolong", "dysfunc", 
+               "breech", "cephalo", "cord", "anesthe", "distress", "otherlb", "hydra",
+               "nanemia", "injury", "heart", "circul", "spina")
   for (col in missing9){
-    DT[is.na(get(col)), (col) := median(DT[[col]], na.rm = T)]
-    DT[DT[[col]] == 9, (col) := 0]
-    DT[DT[[col]] == 8, (col) := 0]
+    
     DT[DT[[col]] == 2, (col) := 0]
+    cutoff = DT[DT[[col]] == 1 | DT[[col]] == 0, mean(DT[[col]])]
+    stddev = DT[DT[[col]] == 1 | DT[[col]] == 0, sd(DT[[col]])]
+    DT[is.na(get(col)), (col) := (rtruncnorm(sum(is.na(get(col))), a = 0, mean = cutoff,  sd = stddev) > cutoff) + 0] 
+    DT[DT[[col]] == 9, (col) := (rtruncnorm(sum(DT[[col]] == 9), a = 0, mean = cutoff,  sd = stddev) > cutoff) + 0] 
+    DT[DT[[col]] == 8, (col) := (rtruncnorm(sum(DT[[col]] == 8), a = 0, mean = cutoff,  sd = stddev) > cutoff) + 0] 
   }
+  DT = DT[primac != 1 & repeac != 1 & vbac != 1]
   
   
-  DT[dbirwt == 9999, dbirwt := median(DT$dbirwt)]
+  # DT[, numCompPre := diabetes + herpes + hemo + hyper + eclamp + incervix + pre4000 + 
+  #      preterm + renal + rh + uterine + othermr ] # this is not all the complications
+  # DT[, numCompDur := tocol + febrile + rupture + abruptio + excebld + seizure + precip + 
+  #      prolong + dysfunc + breech + cephalo + cord + distress + otherlb]
+
+  ############# here ###################
+  
+    
+  meanValWT = DT[dbirwt != 9999, mean(dbirwt)]
+  stddevWT = DT[dbirwt != 9999, sd(dbirwt)]
+  DT[dbirwt == 9999, dbirwt := rtruncnorm(sum(is.na(get(col))), a = 0, mean = meanValWT,  sd = stddevWT)] # Look into upper limit
   DT = DT[!is.na(DT$stoccfipb)] #remove missing states
   DT$biryr_factor = as.factor(DT$biryr)
   
