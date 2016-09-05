@@ -2,7 +2,7 @@
 # Program: stat01.R
 # Project: Midwives/Infant Mortality
 # Author: Josh Taylor
-# Last edited: 11/11/15
+# Last edited: 9/5/16
 ######################################################################
 
 ###### Details #######################################################
@@ -20,8 +20,8 @@
 #   4. year
 #   5. race_baby/race_mother/race_father
 #   6. sex
-#   7. gestation (?)
-#   8. birthweight (?)
+#   7. gestation 
+#   8. birthweight 
 #   9. plurality
 #   10. age_mother/age_mother_recode
 #   11. education_mother
@@ -30,6 +30,7 @@
 #   14. health_risks
 #   15. c_section
 #   16. delivery method
+#   Note: Add birth month and birth week day dummies
 ######################################################################
 library(MatchIt)
 library(data.table)
@@ -211,7 +212,8 @@ rm(firstbirths)
 
 
 
-
+########## Questions left to answer ##########
+# 1. Should I include msa? (1995-2002 doesn't contian this data only some major cities)
 
 
 
