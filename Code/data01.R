@@ -26,6 +26,8 @@ for (i in 1995:2004){
   # DT = fread(path, header = T , nrows = 1000)
   DT = fread(path, header = T)
   
+
+  
   if (i == 2003){
     DT = rename(DT, replace = c("mager41" = "dmage", "bfacil3" = "pldel")) # perhaps just use mager
     DT$dmage = DT$dmage + 13 
@@ -163,8 +165,8 @@ for (i in 1995:2004){
     cutoff = DT[DT[[col]] == 1 | DT[[col]] == 0, mean(DT[[col]])]
     stddev = DT[DT[[col]] == 1 | DT[[col]] == 0, sd(DT[[col]])]
     DT[is.na(get(col)), (col) := as.integer((rtruncnorm(sum(is.na(get(col))), a = 0, b = 1, mean = cutoff,  sd = stddev) > cutoff) + 0)] 
-    DT[DT[[col]] == 9, (col) := as.integer((rtruncnorm(sum(DT[[col]] == 9), a = 0, b = 1, mean = cutoff,  sd = stddev) > cutoff) + 0)] 
-    DT[DT[[col]] == 8, (col) := as.integer((rtruncnorm(sum(DT[[col]] == 8), a = 0, b = 1, mean = cutoff,  sd = stddev) > cutoff) + 0)] 
+    DT[DT[[col]] == 9, (col) := as.integer((rtruncnorm(sum(get(col) == 9), a = 0, b = 1, mean = cutoff,  sd = stddev) > cutoff) + 0)] 
+    DT[DT[[col]] == 8, (col) := as.integer((rtruncnorm(sum(get(col) == 8), a = 0, b = 1, mean = cutoff,  sd = stddev) > cutoff) + 0)] 
   }
   DT = DT[primac != 1 & repeac != 1 & vbac != 1]
   DT = DT[fmaps != 99 & !is.na(fmaps)]
@@ -172,11 +174,14 @@ for (i in 1995:2004){
     
   meanValWT = DT[dbirwt != 9999, mean(dbirwt)]
   stddevWT = DT[dbirwt != 9999, sd(dbirwt)]
-  DT[dbirwt == 9999, dbirwt := rtruncnorm(sum(is.na(get(col))), a = 0, mean = meanValWT,  sd = stddevWT)] # Look into upper limit
+  DT[is.na(dbirwt), dbirwt := as.integer(rtruncnorm(sum(is.na(get(col))), a = 0, mean = meanValWT,  sd = stddevWT))] # Look into upper limit
+  DT[dbirwt== 9999, dbirwt := as.integer(rtruncnorm(sum(get(col) == 9999), a = 0, mean = meanValWT,  sd = stddevWT))] # Look into upper limit
+  
   #remove data with missing states
   DT = DT[!is.na(stoccfipb)] 
   DT[, biryr_factor := as.factor(biryr)]
-
+  
+  
   if (i == 1995){
     allbirths = DT
     completed = c(i)
@@ -195,5 +200,5 @@ write.table(allbirths, "/Volumes/Seagate Data Drive/Research/Midwives:Doctors Ou
 finish = Sys.time()
 print((finish - start)/60)
 print("Actually in minutes")
-# write.dta(allbirths, "C:\\Josh Taylor\\allbirths.dta")
+
 
