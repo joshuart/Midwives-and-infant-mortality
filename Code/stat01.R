@@ -12,7 +12,7 @@
 #   3. apgar ~ covariates + midwife_dummy (quantile)
 #   4. mort ~ covaritaes + midwife_dummy (preterm)
 #   5. injury ~ covariates + midwife_dummy
-#   
+#   # Also include death before 28 days and after
 # Data I need to perform the analysis:
 #   1. birth_outcome
 #   2. birth_attendent
