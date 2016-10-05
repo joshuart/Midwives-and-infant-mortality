@@ -111,7 +111,7 @@ for (i in 1995:2004){
                "Pennsylvania","", "Rhode Island", "South Carolina", "South Dakota", 
                "Tennessee", "Texas", "Utah", "Vermont", "Virginia","", "Washington", 
                "West Virginia", "Wisconsin", "Wyoming") 
-               #there need to blanks to match the numbering in the description file
+               #there need to be blanks to match the numbering in the description file
     DT$state = states[DT$stoccfipb] } else {DT$state = state.name[match(DT$stoccfipb, state.abb)]}
   DT[, stateStr := state]
   DT[, state := as.factor(state)]
@@ -126,6 +126,12 @@ for (i in 1995:2004){
   DT[, hyper := (chyper == 1) + 0]
   DT[, midwifeAll := (birattnd == 3 | birattnd == 4) + 0]
   DT[, midwife := (birattnd == 3) + 0]
+  DT[, hospital_birth := (pldel == 1) + 0]
+  DT[, birth_center_birth := (pldel == 2) + 0]
+  DT[, dr_office_birth := (pldel ==3) + 0]
+  DT[, home_birth := (pldel == 4) + 0]
+  DT[, other_place_birth := (pldel == 8) + 0]
+  DT = DT[pldel != 9]
   
   
   ####################### revalue the missing data ###################
@@ -145,12 +151,13 @@ for (i in 1995:2004){
   DT[, dprenat := (mpcb != 0) + 0]
   # Put people with no prenatal care with those that started in the last month
   DT[mpcb == 0, mpcb := 9]
-
+  
+  
   
   #9 means missing, set missing to not observed
   DT[is.na(birattnd), birattnd := 5]
   DT[birattnd == 9, birattnd := 5] # set missing to other
-  missing9 = c("matchs", "pldel", "dmar",  "forcep", "vaginal", "primac", "repeac", "vbac",
+  missing9 = c("matchs",  "dmar",  "forcep", "vaginal", "primac", "repeac", "vbac",
                "vacuum", "anemia", "cardiac", "lung", "diabetes", 
                "herpes", "hemo", "chyper", "phyper", "eclamp", "incervix", 
                "pre4000", "preterm", "renal", "rh", "uterine", "othermr", 
@@ -169,8 +176,8 @@ for (i in 1995:2004){
     DT[DT[[col]] == 8, (col) := as.integer((rtruncnorm(sum(get(col) == 8), a = 0, b = 1, mean = cutoff,  sd = stddev) > cutoff) + 0)] 
   }
   DT = DT[primac != 1 & repeac != 1 & vbac != 1]
-  DT = DT[fmaps != 99 & !is.na(fmaps)]
-  
+  # DT = DT[fmaps != 99 & !is.na(fmaps)] # This line is a problem
+  # California and Texas don't record five-minute apgar scores
     
   meanValWT = DT[dbirwt != 9999, mean(dbirwt)]
   stddevWT = DT[dbirwt != 9999, sd(dbirwt)]
@@ -178,7 +185,8 @@ for (i in 1995:2004){
   DT[dbirwt== 9999, dbirwt := as.integer(rtruncnorm(sum(get(col) == 9999), a = 0, mean = meanValWT,  sd = stddevWT))] # Look into upper limit
   
   #remove data with missing states
-  DT = DT[!is.na(stoccfipb)] 
+  DT = DT[!is.na(stoccfipb)] # This doesn't seem to be working
+  
   DT[, biryr_factor := as.factor(biryr)]
   
   
